@@ -3,65 +3,83 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Ocean Raid Game</title>
+<title>Ocean Battle Classroom Game</title>
 <style>
-body{font-family:Arial;text-align:center;background:#0c4a6e;color:white}
-button{padding:10px 20px;margin:5px;font-size:16px}
+body{font-family:Arial;background:#0c4a6e;color:white;text-align:center}
+button{padding:10px;margin:5px;font-size:16px}
+input{padding:5px}
 </style>
 </head>
 <body>
 
-<h1>Ocean Raid</h1>
+<h1>Ocean Battle</h1>
 
-<input id="name" placeholder="Your name"/>
-<button onclick="join()">Join Game</button>
+<input id="name" placeholder="Your name">
+<button onclick="join()">Join</button>
 
 <h2>Your Gold: <span id="gold">0</span></h2>
 
-<div>
-<button onclick="correct()">Answer Correct (+1 gold)</button>
-</div>
+<h3>Attack a Player</h3>
+<input id="target" placeholder="Target player">
+<button onclick="battle()">Start Battle</button>
 
-<h3>Steal Gold</h3>
-<input id="target" placeholder="Player name"/>
-<button onclick="steal()">Steal 1 Gold</button>
+<div id="battleBox"></div>
 
 <h3>Leaderboard</h3>
 <div id="board"></div>
 
 <script>
+
 let ws;
 let myName="";
 
 function join(){
-  myName=document.getElementById("name").value;
-  ws=new WebSocket(location.origin.replace("http","ws"));
-  ws.onopen=()=>{
-    ws.send(JSON.stringify({type:"join",name:myName}));
-  };
-  ws.onmessage=e=>{
-    const data=JSON.parse(e.data);
-    if(data.type==="update"){
-      const p=data.players;
-      document.getElementById("gold").innerText=p[myName]?.gold||0;
+ myName=document.getElementById("name").value;
+ ws=new WebSocket(location.origin.replace("http","ws"));
 
-      let html="";
-      for(const n in p){
-        html+=n+" : "+p[n].gold+" gold<br>";
-      }
-      document.getElementById("board").innerHTML=html;
+ ws.onopen=()=>{
+   ws.send(JSON.stringify({type:"join",name:myName}));
+ }
+
+ ws.onmessage=e=>{
+  const data=JSON.parse(e.data);
+
+  if(data.type==="state"){
+    const p=data.players;
+
+    document.getElementById("gold").innerText=p[myName]?.gold||0;
+
+    let html="";
+    for(const n in p){
+       html+=n+" : "+p[n].gold+" gold<br>";
     }
-  };
+    document.getElementById("board").innerHTML=html;
+
+    if(data.currentBattle){
+        document.getElementById("battleBox").innerHTML=`
+        <h3>Battle Question</h3>
+        <p>${data.currentBattle.question}</p>
+        <input id="ans">
+        <button onclick="sendAnswer()">Submit</button>
+        `;
+    }else{
+        document.getElementById("battleBox").innerHTML="";
+    }
+  }
+ }
+
 }
 
-function correct(){
-  ws.send(JSON.stringify({type:"correct",name:myName}));
+function battle(){
+ const target=document.getElementById("target").value;
+ ws.send(JSON.stringify({type:"startBattle",attacker:myName,defender:target}));
 }
 
-function steal(){
-  const target=document.getElementById("target").value;
-  ws.send(JSON.stringify({type:"steal",name:myName,target}));
+function sendAnswer(){
+ const ans=document.getElementById("ans").value;
+ ws.send(JSON.stringify({type:"answer",name:myName,answer:ans}));
 }
+
 </script>
 
 </body>
