@@ -1,4 +1,3 @@
-
 const express=require("express");
 const http=require("http");
 const WebSocket=require("ws");
@@ -11,6 +10,7 @@ const wss=new WebSocket.Server({server});
 app.use(express.static(path.join(__dirname,"public")));
 
 let players={};
+
 let questions=[
  {q:"Why might online learning reduce collaboration?",a:"interaction"},
  {q:"Give one advantage of traditional classrooms.",a:"social"},
@@ -39,16 +39,24 @@ wss.on("connection",ws=>{
 
    if(data.type==="startBattle"){
      const q=questions[Math.floor(Math.random()*questions.length)];
-     currentBattle={attacker:data.attacker,defender:data.defender,question:q.q,answer:q.a};
+     currentBattle={
+       attacker:data.attacker,
+       defender:data.defender,
+       question:q.q,
+       answer:q.a
+     };
      broadcast();
    }
 
    if(data.type==="answer"){
      if(!currentBattle)return;
 
-     const correct=data.answer.toLowerCase().includes(currentBattle.answer);
+     const correct=data.answer
+       .toLowerCase()
+       .includes(currentBattle.answer);
 
      if(correct){
+
         players[data.name].gold+=2;
 
         if(data.name===currentBattle.attacker){
