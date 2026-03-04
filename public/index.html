@@ -1,15 +1,29 @@
-
 <!DOCTYPE html>
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Ocean Battle Classroom Game</title>
+<title>Ocean Battle</title>
+
 <style>
-body{font-family:Arial;background:#0c4a6e;color:white;text-align:center}
-button{padding:10px;margin:5px;font-size:16px}
-input{padding:5px}
+body{
+font-family:Arial;
+background:#0c4a6e;
+color:white;
+text-align:center;
+}
+
+button{
+padding:10px;
+margin:5px;
+font-size:16px;
+}
+
+input{
+padding:6px;
+}
 </style>
 </head>
+
 <body>
 
 <h1>Ocean Battle</h1>
@@ -20,12 +34,14 @@ input{padding:5px}
 <h2>Your Gold: <span id="gold">0</span></h2>
 
 <h3>Attack a Player</h3>
+
 <input id="target" placeholder="Target player">
 <button onclick="battle()">Start Battle</button>
 
 <div id="battleBox"></div>
 
 <h3>Leaderboard</h3>
+
 <div id="board"></div>
 
 <script>
@@ -34,50 +50,77 @@ let ws;
 let myName="";
 
 function join(){
- myName=document.getElementById("name").value;
- ws=new WebSocket(location.origin.replace("http","ws"));
 
- ws.onopen=()=>{
-   ws.send(JSON.stringify({type:"join",name:myName}));
- }
+myName=document.getElementById("name").value;
 
- ws.onmessage=e=>{
-  const data=JSON.parse(e.data);
+ws=new WebSocket(location.origin.replace("http","ws"));
 
-  if(data.type==="state"){
-    const p=data.players;
+ws.onopen=()=>{
+ws.send(JSON.stringify({type:"join",name:myName}));
+}
 
-    document.getElementById("gold").innerText=p[myName]?.gold||0;
+ws.onmessage=e=>{
 
-    let html="";
-    for(const n in p){
-       html+=n+" : "+p[n].gold+" gold<br>";
-    }
-    document.getElementById("board").innerHTML=html;
+const data=JSON.parse(e.data);
 
-    if(data.currentBattle){
-        document.getElementById("battleBox").innerHTML=`
-        <h3>Battle Question</h3>
-        <p>${data.currentBattle.question}</p>
-        <input id="ans">
-        <button onclick="sendAnswer()">Submit</button>
-        `;
-    }else{
-        document.getElementById("battleBox").innerHTML="";
-    }
-  }
- }
+if(data.type==="state"){
+
+const p=data.players;
+
+document.getElementById("gold").innerText=p[myName]?.gold||0;
+
+let html="";
+
+for(const n in p){
+html+=n+" : "+p[n].gold+" gold<br>";
+}
+
+document.getElementById("board").innerHTML=html;
+
+if(data.currentBattle){
+
+document.getElementById("battleBox").innerHTML=
+`
+<h3>Battle Question</h3>
+<p>${data.currentBattle.question}</p>
+<input id="ans">
+<button onclick="sendAnswer()">Submit</button>
+`;
+
+}else{
+
+document.getElementById("battleBox").innerHTML="";
+
+}
+
+}
+
+}
 
 }
 
 function battle(){
- const target=document.getElementById("target").value;
- ws.send(JSON.stringify({type:"startBattle",attacker:myName,defender:target}));
+
+const target=document.getElementById("target").value;
+
+ws.send(JSON.stringify({
+type:"startBattle",
+attacker:myName,
+defender:target
+}));
+
 }
 
 function sendAnswer(){
- const ans=document.getElementById("ans").value;
- ws.send(JSON.stringify({type:"answer",name:myName,answer:ans}));
+
+const ans=document.getElementById("ans").value;
+
+ws.send(JSON.stringify({
+type:"answer",
+name:myName,
+answer:ans
+}));
+
 }
 
 </script>
