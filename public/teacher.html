@@ -1,0 +1,32 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Teacher View</title>
+<style>
+body{font-family:Arial;background:#1e293b;color:white;text-align:center}
+</style>
+</head>
+<body>
+
+<h1>Teacher Leaderboard</h1>
+<div id="board"></div>
+
+<script>
+const ws=new WebSocket(location.origin.replace("http","ws"));
+
+ws.onmessage=e=>{
+  const data=JSON.parse(e.data);
+  if(data.type==="update"){
+    let html="";
+    for(const n in data.players){
+      html+=n+" : "+data.players[n].gold+" gold<br>";
+    }
+    document.getElementById("board").innerHTML=html;
+  }
+};
+</script>
+
+</body>
+</html>

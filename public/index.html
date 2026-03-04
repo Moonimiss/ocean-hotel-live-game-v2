@@ -1,0 +1,68 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Ocean Raid Game</title>
+<style>
+body{font-family:Arial;text-align:center;background:#0c4a6e;color:white}
+button{padding:10px 20px;margin:5px;font-size:16px}
+</style>
+</head>
+<body>
+
+<h1>Ocean Raid</h1>
+
+<input id="name" placeholder="Your name"/>
+<button onclick="join()">Join Game</button>
+
+<h2>Your Gold: <span id="gold">0</span></h2>
+
+<div>
+<button onclick="correct()">Answer Correct (+1 gold)</button>
+</div>
+
+<h3>Steal Gold</h3>
+<input id="target" placeholder="Player name"/>
+<button onclick="steal()">Steal 1 Gold</button>
+
+<h3>Leaderboard</h3>
+<div id="board"></div>
+
+<script>
+let ws;
+let myName="";
+
+function join(){
+  myName=document.getElementById("name").value;
+  ws=new WebSocket(location.origin.replace("http","ws"));
+  ws.onopen=()=>{
+    ws.send(JSON.stringify({type:"join",name:myName}));
+  };
+  ws.onmessage=e=>{
+    const data=JSON.parse(e.data);
+    if(data.type==="update"){
+      const p=data.players;
+      document.getElementById("gold").innerText=p[myName]?.gold||0;
+
+      let html="";
+      for(const n in p){
+        html+=n+" : "+p[n].gold+" gold<br>";
+      }
+      document.getElementById("board").innerHTML=html;
+    }
+  };
+}
+
+function correct(){
+  ws.send(JSON.stringify({type:"correct",name:myName}));
+}
+
+function steal(){
+  const target=document.getElementById("target").value;
+  ws.send(JSON.stringify({type:"steal",name:myName,target}));
+}
+</script>
+
+</body>
+</html>
